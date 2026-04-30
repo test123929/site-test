@@ -73,8 +73,8 @@ def login():
             session["dept"] = row["department"]
             return redirect("/portal")
         error = error or "Ongeldige inloggegevens."
-  rendered_login = render_template_string(LOGIN, error=error)
-return render_template_string(SHELL, page="login", body=rendered_login)
+    rendered_login = render_template_string(LOGIN, error=error)
+    return render_template_string(SHELL, page="login", body=rendered_login)
 
 # ── PORTAL (dashboard) ────────────────────────────────────
 @app.route("/portal")
