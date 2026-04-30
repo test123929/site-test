@@ -84,9 +84,11 @@ def portal():
     db = get_db()
     tickets = db.execute("SELECT * FROM tickets").fetchall()
     db.close()
-    return render_template_string(SHELL, page="portal", body=PORTAL,
-                                  user=session["user"], role=session["role"],
-                                  dept=session["dept"], tickets=tickets)
+    rendered_portal = render_template_string(PORTAL, user=session["user"],
+                                             role=session["role"], dept=session["dept"],
+                                             tickets=tickets)
+    return render_template_string(SHELL, page="portal", body=rendered_portal,
+                                  user=session["user"], role=session["role"])
 
 # ── ZOEKEN — XSS + SQL INJECTION ─────────────────────────
 @app.route("/search")
@@ -114,7 +116,8 @@ def search():
             </div>
         </div>"""
     search_output = f'<p class="search-label">Resultaten voor: <strong>{q}</strong></p>' + (result_html or '<p class="no-res">Geen tickets gevonden.</p>') if q else ""
-    return render_template_string(SHELL, page="search", body=SEARCH, q=q, search_output=search_output)
+    rendered_search = render_template_string(SEARCH, q=q, search_output=search_output)
+    return render_template_string(SHELL, page="search", body=rendered_search, user=session.get("user",""))
 
 # ── MEDEWERKER PROFIEL — IDOR ────────────────────────────
 @app.route("/employee/<int:eid>")
@@ -125,7 +128,9 @@ def employee(eid):
     db.close()
     if not emp:
         return render_template_string(SHELL, page="employee", body="<div class='card'><p>Medewerker niet gevonden.</p></div>")
-    return render_template_string(SHELL, page="employee", body=PROFILE, emp=emp)
+    rendered_profile = render_template_string(PROFILE, emp=emp)
+    return render_template_string(SHELL, page="employee", body=rendered_profile,
+                                  user=session.get("user",""))
 
 # ── LOGOUT ────────────────────────────────────────────────
 @app.route("/logout")
