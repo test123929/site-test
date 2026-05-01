@@ -49,7 +49,7 @@ def init_db():
 # ── HOME ──────────────────────────────────────────────────
 @app.route("/")
 def index():
-    return render_template_string(SHELL, page="home", body=HOME)
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", HOME), page="home")
 
 # ── LOGIN — SQL INJECTION ─────────────────────────────────
 @app.route("/login", methods=["GET","POST"])
@@ -74,7 +74,7 @@ def login():
             return redirect("/portal")
         error = error or "Ongeldige inloggegevens."
     rendered_login = render_template_string(LOGIN, error=error)
-    return render_template_string(SHELL, page="login", body=rendered_login)
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", rendered_login), page="login")
 
 # ── PORTAL (dashboard) ────────────────────────────────────
 @app.route("/portal")
@@ -87,8 +87,8 @@ def portal():
     rendered_portal = render_template_string(PORTAL, user=session["user"],
                                              role=session["role"], dept=session["dept"],
                                              tickets=tickets)
-    return render_template_string(SHELL, page="portal", body=rendered_portal,
-                                  user=session["user"], role=session["role"])
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", rendered_portal),
+                                  page="portal", user=session["user"], role=session["role"])
 
 # ── ZOEKEN — XSS + SQL INJECTION ─────────────────────────
 @app.route("/search")
@@ -117,7 +117,8 @@ def search():
         </div>"""
     search_output = f'<p class="search-label">Resultaten voor: <strong>{q}</strong></p>' + (result_html or '<p class="no-res">Geen tickets gevonden.</p>') if q else ""
     rendered_search = render_template_string(SEARCH, q=q, search_output=search_output)
-    return render_template_string(SHELL, page="search", body=rendered_search, user=session.get("user",""))
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", rendered_search),
+                                  page="search", user=session.get("user",""))
 
 # ── MEDEWERKER PROFIEL — IDOR ────────────────────────────
 @app.route("/employee/<int:eid>")
@@ -129,8 +130,8 @@ def employee(eid):
     if not emp:
         return render_template_string(SHELL, page="employee", body="<div class='card'><p>Medewerker niet gevonden.</p></div>")
     rendered_profile = render_template_string(PROFILE, emp=emp)
-    return render_template_string(SHELL, page="employee", body=rendered_profile,
-                                  user=session.get("user",""))
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", rendered_profile),
+                                  page="employee", user=session.get("user",""))
 
 # ── LOGOUT ────────────────────────────────────────────────
 @app.route("/logout")
@@ -141,7 +142,7 @@ def logout():
 # ── DISCLAIMER ────────────────────────────────────────────
 @app.route("/disclaimer")
 def disclaimer():
-    return render_template_string(SHELL, page="disclaimer", body=DISCLAIMER)
+    return render_template_string(SHELL.replace("__BODY_CONTENT__", DISCLAIMER), page="disclaimer")
 
 # ════════════════════════════════════════════════════════
 # TEMPLATES
@@ -336,7 +337,7 @@ input:focus{outline:none;border-color:var(--accent);background:#fff}
     <a href="/logout"><span class="icon">🚪</span> Uitloggen</a>
     {% endif %}
   </div>
-  <div class="main">{{ body | safe }}</div>
+  <div class="main">__BODY_CONTENT__</div>
 </div>
 {% endif %}
 
